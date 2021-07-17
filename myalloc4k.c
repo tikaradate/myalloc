@@ -2,6 +2,8 @@
 #include <unistd.h>
 
 void *topoInicialHeap;
+void *topoHeapHeap;
+int free_bytes;
 
 void iniciaAlocador();
 void finalizaAlocador();
@@ -10,7 +12,7 @@ int liberaMem(void *);
 void imprimeMapa();
 
 int main(){
-    long int *alo, *carai, *jorge;
+    long int *alo, *carai, *jorge, *lucas;
     printf("beep beep memoria hmmm\n");
     iniciaAlocador();
     imprimeMapa();
@@ -31,17 +33,25 @@ int main(){
     // printf("%p %p %p, %d %d %c\n", sbrk(0), alo, carai, carai[-2], carai[-1], carai[0]);
     jorge = alocaMem(8);
     imprimeMapa();
+    lucas = alocaMem(5000);
+    imprimeMapa();
+    liberaMem(jorge);
+    imprimeMapa();
+    liberaMem(lucas);
+    imprimeMapa();
+    jorge = alocaMem(9);
+    imprimeMapa();
     // printf("%p\n", sbrk(0));
 }
 
 void iniciaAlocador(){
     topoInicialHeap = sbrk(0);
+    topoHeapHeap = topoInicialHeap;
 }
 
 void *alocaMem(long int num_bytes){
     long int *a = topoInicialHeap;
-    void *topoAtual = sbrk(0);
-    while(a != topoAtual){
+    while(a != (long int*)topoHeapHeap){
         if(a[0] == 0){
             if(a[1] >= num_bytes){
                 long int *info;
@@ -55,15 +65,25 @@ void *alocaMem(long int num_bytes){
         }
         a += 2 + (a[1]/8);
     }
+    void *topoBloco = sbrk(0);
+    if(topoHeapHeap + num_bytes > topoBloco){
+        int alocaTrue = topoBloco- topoHeapHeap;
+        alocaTrue = num_bytes - alocaTrue;
+        int valorsbrk = ((alocaTrue/4096) + 1)*4096;
+        sbrk(valorsbrk);
+        sbrk(0);
+    }
+
+    // TODO mexer com o topo Heap Heap
     long int *info;
     // abre 8 bytes para um long que indica se o bloco esta ocupado
-    info = (long int *)sbrk(8);
-    *info = 1;
+    info = topoHeapHeap;
+    info[0] = 1;
     // abre outros 8 bytes para guardar o tamanho do bloco
-    info = (long int *)sbrk(8);
-    *info = num_bytes;
+    info[1] = num_bytes;
     // aloca o espaco necessario do bloco
-    void *endereco = sbrk(num_bytes);
+    void *endereco = &info[2];
+    topoHeapHeap += num_bytes + (2*8);
     return ((char*)endereco);
 }
 
@@ -82,7 +102,7 @@ void finalizaAlocador(){
 void imprimeMapa(){
     char c;
     long int *a = topoInicialHeap;
-    void *topoAtual = sbrk(0);
+    void *topoAtual = topoHeapHeap;
         
     while(a != topoAtual){
         printf("##");

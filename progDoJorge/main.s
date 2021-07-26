@@ -1,12 +1,4 @@
 .data
-    # Variaveis bobocas
-    A:       .quad  0
-    texto:   .string  "Ola %s voce e %ld \n"
-    nome:    .string  "Jorge"
-    nota:    .quad  7
-    TAMANHO: .quad 1
-
-    #Variaveis de verdade
 
     topoInicialHeap: .quad 0
     topoAtualHeap:   .quad 0
@@ -24,34 +16,6 @@
 
 .text
 
-.globl falaOi
-falaOi:
-    mov   $cabecalho , %rdi   # Primeiro argumento printf  
-    mov   $nome  , %rsi       # Segundo  argumento printf
-    mov   nota   , %rdx       # Terceiro argumento printf
-    call  printf              # Chama              printf
-
-ret
-
-.globl imprimeLinha
-imprimeLinha:
-    mov TAMANHO, %rbx 
-    mov $0     , %r10
-
-    while:
-        cmp %rbx, %r10
-        jge fim
-
-        mov $45    , %rdi 
-        call putchar
-
-        add $1, %r10
-
-        jmp while
-    fim:
-        mov $10, %rdi
-        call putchar
-ret
 
 .globl iniciaAlocador
 iniciaAlocador:

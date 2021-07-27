@@ -53,9 +53,9 @@ alocaMem:
     pushq %rbp
     movq  %rsp, %rbp
 
-    mov  %rdi           , tamAloc # salva o tamanho da alocacao
-    mov  topoInicialHeap, %r12    # Salva o topo da heap em r12
-    movq $0, enderecoBestFit      # enderecoBestFit = NULL
+    mov  %rdi           , tamAloc         # salva o tamanho da alocacao
+    mov  topoInicialHeap, %r12            # Salva o topo da heap em r12
+    movq $0, enderecoBestFit              # enderecoBestFit = NULL
 
 
     movq topoAlocado, %rbx
@@ -83,14 +83,14 @@ alocaMem:
         
         jmp prox_bloc_2                   # pula para o proximo bloco
 
-        prox_bloc_1:
-        add $8       , %r12
-        mov (%r12)   , %r15
+        prox_bloc_1:                      # aqui o loop morreu lgo no começo
+        add $8       , %r12               #  entao é preciso add 8 agora e mais 8
+        mov (%r12)   , %r15               #  daqui a pouco pra fechar o cabeçalho
 
-        prox_bloc_2:
-        add $8       , %r12
+        prox_bloc_2:                      # aqui é se só nao tem tamanho o suficiente
+        add $8       , %r12               # soma os 8 restantes
 
-        add %r15     , %r12
+        add %r15     , %r12               # e soma o tamanho do bloco que foi analizado
 
         jmp w0                            # volta para o inicio do loop
 
@@ -206,46 +206,46 @@ imprimeMapa:
     mov topoInicialHeap, %r12        # Salva o topo da heap em r12
 
     w1:
-        cmpq topoAlocado, %r12       # compara r10 com topoAtualHeap
+        cmpq topoAlocado, %r12       # compara r12 com topoAlocado (topoHeapHeap)
         je fim_w1                    # se são iguais, nao imprime nada
 
-        mov (%r12)    , %r15         # indica se o bloco está vazio ou não
-        cmp $1        , %r15
-        je  setPlus
-        mov minusChar , %r14 
-        jmp fimSet
-        setPlus:
-        mov plusChar  , %r14
-        fimSet:
+        mov (%r12)    , %r15         # move o valor que indica se o bloco esta ocupado em r15
+        cmp $1        , %r15         # compara com 1
+        je  setPlus                  # se for igual, pula para botar + no r14
+        mov minusChar , %r14         # senão bota - no r14
+        jmp fimSet                   # vai pro fim de setar char
+        setPlus:                     # aqui é onde bota o +
+        mov plusChar  , %r14         # aqui ó
+        fimSet:                          
 
-        mov   $cabecalho , %rdi  
-        call  printf
+        mov   $cabecalho , %rdi      # imprime os 16 '#'
+        call  printf                 # todos juntos pelo printf
 
-        add $8    , %r12  # lugar do tamanho
-        mov (%r12), %r15
-        mov $0    , %r13 
+        add $8    , %r12             # lugar do tamanho
+        mov (%r12), %r15             # move o tamanho para r15
+        mov $0    , %r13             # move 0 pra 13 (pro contador de iterações)
 
         w2: 
-            cmp %r15, %r13 
-            jge fim_w2
+            cmp %r15, %r13           # compara para ver se ja chegou no fim do loop
+            jge fim_w2               # se sim, vai para o proximo bloco
+                             
+            mov %r14, %rdi           # joga + ou - no rdi
+            call putchar             # imprime
 
-            mov %r14, %rdi 
-            call putchar
+            add $1, %r13             # soma 1 no iterador
 
-            add $1, %r13
-
-            jmp w2
+            jmp w2                   # faz tudo dnv
         fim_w2:
 
-        add %r15  , %r12  # add tamanho
-        add $8    , %r12 
+        add %r15  , %r12             # add tamanho no iterador externo
+        add $8    , %r12             # soma mais 8 por conta do cabeçalho
 
-        jmp w1
+        jmp w1                       # faz o loop externo novamente
 
     fim_w1:
 
-    mov $10, %rdi
-    call putchar
+    mov $10, %rdi                    # char de fim de linha
+    call putchar                     # chamada do putchar
 
     popq %rbp
 
